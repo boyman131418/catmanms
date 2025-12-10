@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, RefreshCw, Settings, ChevronDown, Loader2 } from 'lucide-react';
+import { LogOut, RefreshCw, Settings, ChevronDown, Loader2, Lock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhqGh895WThl6H8-h22mWEtDKfjqSMb1SI-etg4JsnX6o-m0n8bxD7ferz1Oko94jSZA/exec';
+const SETTINGS_PASSWORD = '0012';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -17,8 +21,10 @@ const Index = () => {
   
   const [sheetData, setSheetData] = useState<SheetData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [scriptUrl, setScriptUrl] = useState<string>('');
+  const [scriptUrl, setScriptUrl] = useState<string>(DEFAULT_SCRIPT_URL);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isSettingsUnlocked, setIsSettingsUnlocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -27,12 +33,32 @@ const Index = () => {
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    // Load saved script URL from localStorage
+    // Load saved script URL from localStorage, or use default
     const savedUrl = localStorage.getItem('google_script_url');
     if (savedUrl) {
       setScriptUrl(savedUrl);
+    } else {
+      setScriptUrl(DEFAULT_SCRIPT_URL);
+      localStorage.setItem('google_script_url', DEFAULT_SCRIPT_URL);
     }
   }, []);
+
+  const handleUnlockSettings = () => {
+    if (passwordInput === SETTINGS_PASSWORD) {
+      setIsSettingsUnlocked(true);
+      setPasswordInput('');
+      toast({
+        title: '已解鎖',
+        description: '設定已解鎖，可以查看或修改',
+      });
+    } else {
+      toast({
+        title: '密碼錯誤',
+        description: '請輸入正確的密碼',
+        variant: 'destructive',
+      });
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -103,7 +129,7 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Settings Panel */}
+        {/* Settings Panel - Password Protected */}
         <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
           <Card>
             <CollapsibleTrigger asChild>
@@ -112,11 +138,7 @@ const Index = () => {
                   <div className="flex items-center gap-2">
                     <Settings className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium">設定</span>
-                    {!scriptUrl && (
-                      <span className="text-xs bg-destructive/10 text-destructive px-2 py-1 rounded-full">
-                        需要設定才能編輯
-                      </span>
-                    )}
+                    <Lock className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <ChevronDown className={`h-5 w-5 transition-transform ${settingsOpen ? 'rotate-180' : ''}`} />
                 </div>
@@ -124,7 +146,27 @@ const Index = () => {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-4 pb-4">
-                <ScriptSetup scriptUrl={scriptUrl} onScriptUrlChange={handleScriptUrlChange} />
+                {isSettingsUnlocked ? (
+                  <ScriptSetup scriptUrl={scriptUrl} onScriptUrlChange={handleScriptUrlChange} />
+                ) : (
+                  <Card>
+                    <CardContent className="p-4 space-y-4">
+                      <p className="text-sm text-muted-foreground">請輸入密碼以查看或修改設定</p>
+                      <div className="flex gap-2">
+                        <Input
+                          type="password"
+                          placeholder="輸入密碼"
+                          value={passwordInput}
+                          onChange={(e) => setPasswordInput(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleUnlockSettings()}
+                        />
+                        <Button onClick={handleUnlockSettings}>
+                          解鎖
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </CollapsibleContent>
           </Card>
