@@ -100,7 +100,7 @@ const SheetTable = ({ data, userEmail, onDataUpdated, scriptUrl }: SheetTablePro
     <>
       <div className="rounded-lg border bg-card overflow-hidden">
         <div className="overflow-x-auto">
-          <Table>
+          <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow className="bg-muted/50">
                 {data.headers.map((header, index) => (
@@ -122,7 +122,7 @@ const SheetTable = ({ data, userEmail, onDataUpdated, scriptUrl }: SheetTablePro
                     {row.data.map((cell, cellIndex) => (
                       <TableCell 
                         key={cellIndex} 
-                        className="whitespace-nowrap max-w-xs"
+                        className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
                         title={cell}
                       >
                         {formatCellContent(cell, data.headers[cellIndex] || '')}
