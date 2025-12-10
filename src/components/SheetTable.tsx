@@ -85,6 +85,17 @@ const SheetTable = ({ data, userEmail, onDataUpdated, scriptUrl }: SheetTablePro
     );
   }
 
+  // Helper to truncate cell content for specific columns
+  const truncateHeaders = ['iglink', 'apikey'];
+  
+  const formatCellContent = (cell: string, headerName: string) => {
+    const normalizedHeader = headerName.toLowerCase().replace(/\s/g, '');
+    if (truncateHeaders.includes(normalizedHeader) && cell.length > 10) {
+      return cell.substring(0, 10) + '...';
+    }
+    return cell;
+  };
+
   return (
     <>
       <div className="rounded-lg border bg-card overflow-hidden">
@@ -109,8 +120,12 @@ const SheetTable = ({ data, userEmail, onDataUpdated, scriptUrl }: SheetTablePro
                     className={editable ? 'bg-accent/10 hover:bg-accent/20' : ''}
                   >
                     {row.data.map((cell, cellIndex) => (
-                      <TableCell key={cellIndex} className="whitespace-nowrap max-w-xs truncate">
-                        {cell}
+                      <TableCell 
+                        key={cellIndex} 
+                        className="whitespace-nowrap max-w-xs"
+                        title={cell}
+                      >
+                        {formatCellContent(cell, data.headers[cellIndex] || '')}
                       </TableCell>
                     ))}
                     <TableCell className="text-center">
