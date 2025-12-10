@@ -43,7 +43,7 @@ const Index = () => {
   const loadSheetData = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchSheetData();
+      const data = await fetchSheetData(user?.email || undefined);
       setSheetData(data);
     } catch (error) {
       console.error('Error loading sheet data:', error);
@@ -134,8 +134,7 @@ const Index = () => {
         <Card className="bg-accent/10 border-accent/20">
           <CardContent className="p-4">
             <p className="text-sm">
-              <strong>提示：</strong>你只能編輯 A 欄電郵與你登入電郵相符的行。
-              這些行會以綠色背景顯示。
+              <strong>提示：</strong>只顯示與你登入電郵相符的資料。
             </p>
           </CardContent>
         </Card>

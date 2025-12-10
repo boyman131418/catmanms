@@ -11,7 +11,7 @@ export interface SheetData {
   rows: SheetRow[];
 }
 
-export const fetchSheetData = async (): Promise<SheetData> => {
+export const fetchSheetData = async (userEmail?: string): Promise<SheetData> => {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
   
   const response = await fetch(csvUrl);
@@ -27,10 +27,19 @@ export const fetchSheetData = async (): Promise<SheetData> => {
   }
   
   const headers = lines[0];
-  const rows: SheetRow[] = lines.slice(1).map((data, index) => ({
+  let rows: SheetRow[] = lines.slice(1).map((data, index) => ({
     rowIndex: index + 2, // Row 1 is headers, so data starts at row 2
     data
   }));
+  
+  // Filter rows to only show those matching the user's email
+  if (userEmail) {
+    const normalizedUserEmail = userEmail.toLowerCase().trim();
+    rows = rows.filter(row => {
+      const rowEmail = row.data[0]?.toLowerCase().trim();
+      return rowEmail === normalizedUserEmail;
+    });
+  }
   
   return { headers, rows };
 };
